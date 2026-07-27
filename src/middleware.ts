@@ -1,3 +1,4 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import {
@@ -5,6 +6,7 @@ import {
   getActiveTenantByCustomDomain,
   getActiveTenantBySlug,
 } from "@/lib/queries/tenants";
+import type { Database } from "@/types/database";
 
 const SLUG_PATH_RE = /^\/s\/([^/]+)(?:\/|$)/;
 
@@ -27,20 +29,68 @@ function extractSlugFromPath(pathname: string): string | null {
 }
 
 export async function middleware(request: NextRequest) {
-  const host = getRequestHost(request);
+  const requestHeaders = new Headers(request.headers);
+  let response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+
+  const supabase = createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
+          response = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    },
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const pathname = request.nextUrl.pathname;
 
+  if (pathname.startsWith("/admin") && !user) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (pathname === "/login" && user) {
+    const authError = request.nextUrl.searchParams.get("error");
+    // Аккаунт без tenant_users должен видеть /login?error=no-tenant, а не луп
+    if (authError !== "no-tenant") {
+      const adminUrl = request.nextUrl.clone();
+      adminUrl.pathname = "/admin";
+      adminUrl.search = "";
+      return NextResponse.redirect(adminUrl);
+    }
+  }
+
+  const host = getRequestHost(request);
   let tenantId: string | null = null;
   let tenantSlug: string | null = null;
 
-  // 1) custom_domain
   const byDomain = await getActiveTenantByCustomDomain(host);
   if (byDomain) {
     tenantId = byDomain.id;
     tenantSlug = byDomain.slug;
   }
 
-  // 2) поддомен платформы slug.dukenim.kz (заготовка; на localhost/Vercel не сработает)
   if (!tenantId) {
     const platformSlug = extractPlatformSubdomainSlug(host);
     if (platformSlug) {
@@ -52,7 +102,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3) путь /s/[slug]
   if (!tenantId) {
     const pathSlug = extractSlugFromPath(pathname);
     if (pathSlug) {
@@ -64,7 +113,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const requestHeaders = new Headers(request.headers);
   if (tenantId && tenantSlug) {
     requestHeaders.set("x-tenant-id", tenantId);
     requestHeaders.set("x-tenant-slug", tenantSlug);
@@ -73,19 +121,19 @@ export async function middleware(request: NextRequest) {
     requestHeaders.delete("x-tenant-slug");
   }
 
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
+  // Пересоздаём response с обновлёнными заголовками, сохраняя cookies сессии
+  const finalResponse = NextResponse.next({
+    request: { headers: requestHeaders },
   });
+  response.cookies.getAll().forEach((cookie) => {
+    finalResponse.cookies.set(cookie);
+  });
+
+  return finalResponse;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Исключаем статику, Next internals и API —
-     * middleware не должен ходить в БД на каждый ассет.
-     */
     "/((?!_next/static|_next/image|_next/webpack-hmr|api|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map|txt|xml|webmanifest)$).*)",
   ],
 };
