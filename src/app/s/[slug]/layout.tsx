@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
 
+import { PwaRegister } from "@/components/storefront/PwaRegister";
 import { StorefrontShell } from "@/components/storefront/StorefrontShell";
 import {
   getActiveTenantBySlug,
@@ -25,9 +26,22 @@ export async function generateMetadata({
     return { title: "Магазин не найден" };
   }
 
+  const accent = resolveAccentColor(tenant.accent_color);
+
   return {
     title: tenant.name,
     description: tenant.tagline ?? undefined,
+    manifest: `/s/${tenant.slug}/manifest.webmanifest`,
+    themeColor: accent,
+    appleWebApp: {
+      capable: true,
+      title: tenant.name,
+      statusBarStyle: "default",
+    },
+    icons: {
+      icon: tenant.logo_url || `/s/${tenant.slug}/icon`,
+      apple: tenant.logo_url || `/s/${tenant.slug}/icon`,
+    },
   };
 }
 
@@ -51,6 +65,7 @@ export default async function StorefrontLayout({
     <div className="min-h-screen bg-background text-foreground" style={style}>
       <StorefrontShell tenant={tenant} />
       {children}
+      <PwaRegister slug={tenant.slug} />
     </div>
   );
 }

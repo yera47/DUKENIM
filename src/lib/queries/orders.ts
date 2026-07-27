@@ -284,6 +284,115 @@ export async function createOnlineOrder(
   };
 }
 
+export type OfflineSaleInput = {
+  tenantId: string;
+  variantId: string;
+  qty?: number;
+  staffId: string;
+};
+
+export async function createOfflineSale(
+  input: OfflineSaleInput,
+): Promise<CreateOrderResult> {
+  const service = createServiceClient();
+  const qty = Math.max(1, Math.round(input.qty ?? 1));
+
+  const { data: variant, error: variantError } = await service
+    .from("product_variants")
+    .select(
+      "id, stock_qty, price_delta, is_active, size, product:products!inner(id, title, price, is_active, tenant_id)",
+    )
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.variantId)
+    .maybeSingle();
+
+  if (variantError || !variant) {
+    return { ok: false, error: "Вариант не найден" };
+  }
+
+  const product = variant.product as unknown as {
+    id: string;
+    title: string;
+    price: number;
+    is_active: boolean;
+    tenant_id: string;
+  };
+
+  if (!variant.is_active || !product.is_active) {
+    return { ok: false, error: "Товар недоступен" };
+  }
+  if (product.tenant_id !== input.tenantId) {
+    return { ok: false, error: "Товар из другого магазина" };
+  }
+  if (variant.stock_qty < qty) {
+    return { ok: false, error: "Недостаточно остатка" };
+  }
+
+  const priceSnapshot = product.price + variant.price_delta;
+  const total = priceSnapshot * qty;
+
+  const { data: order, error: orderError } = await service
+    .from("orders")
+    .insert({
+      tenant_id: input.tenantId,
+      customer_id: null,
+      source: "offline",
+      status: "done",
+      delivery_method: "pickup",
+      delivery_cost: 0,
+      subtotal: total,
+      bonus_used: 0,
+      bonus_earned: 0,
+      total,
+      payment_status: "paid",
+      payment_method: "cash",
+      staff_id: input.staffId,
+    })
+    .select("id, order_number")
+    .single();
+
+  if (orderError || !order) {
+    return { ok: false, error: "Не удалось создать офлайн-продажу" };
+  }
+
+  const { error: itemError } = await service.from("order_items").insert({
+    order_id: order.id,
+    tenant_id: input.tenantId,
+    variant_id: variant.id,
+    title_snapshot: product.title,
+    price_snapshot: priceSnapshot,
+    qty,
+  });
+
+  if (itemError) {
+    await service.from("orders").delete().eq("id", order.id);
+    return { ok: false, error: "Не удалось сохранить позицию" };
+  }
+
+  const { error: stockError } = await service.from("stock_movements").insert({
+    tenant_id: input.tenantId,
+    variant_id: variant.id,
+    delta: -qty,
+    reason: "sale",
+    order_id: order.id,
+    staff_id: input.staffId,
+  });
+
+  if (stockError) {
+    await service.from("order_items").delete().eq("order_id", order.id);
+    await service.from("orders").delete().eq("id", order.id);
+    return { ok: false, error: "Не удалось списать остаток" };
+  }
+
+  return {
+    ok: true,
+    orderId: order.id,
+    orderNumber: order.order_number,
+    total,
+    whatsappUrl: null,
+  };
+}
+
 export type AdminOrder = Tables<"orders"> & {
   order_items: Tables<"order_items">[];
   customers: Pick<Tables<"customers">, "id" | "name" | "phone"> | null;
