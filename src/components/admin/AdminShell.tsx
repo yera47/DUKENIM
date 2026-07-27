@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin/products", label: "Товары" },
   { href: "/admin/orders", label: "Заказы" },
   { href: "/admin/sell", label: "В зале" },
+  { href: "/admin/settings", label: "Настройки" },
 ] as const;
 
 type AdminShellProps = {
