@@ -1,7 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import type { Tables, TablesInsert } from "@/types/database";
 
+export type ProductCategory = Pick<
+  Tables<"categories">,
+  "id" | "name" | "slug" | "sort_order" | "is_active"
+>;
+
 export type ProductWithVariants = Tables<"products"> & {
+  categories: ProductCategory | null;
   product_variants: Tables<"product_variants">[];
 };
 
@@ -10,13 +16,74 @@ export type VariantInput = {
   stock_qty: number;
 };
 
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9а-яё\s-]/gi, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export async function listCategoriesForTenant(
+  tenantId: string,
+): Promise<ProductCategory[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id, name, slug, sort_order, is_active")
+    .eq("tenant_id", tenantId)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (error || !data) return [];
+  return data;
+}
+
+export async function createCategoryForTenant(input: {
+  tenantId: string;
+  name: string;
+}): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createClient();
+  const name = input.name.trim();
+  if (!name) return { error: "Укажите название раздела" };
+
+  const baseSlug = slugify(name) || "category";
+  let slug = baseSlug;
+  let attempt = 1;
+
+  while (attempt < 20) {
+    const { data: exists } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("tenant_id", input.tenantId)
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!exists) break;
+    attempt += 1;
+    slug = `${baseSlug}-${attempt}`;
+  }
+
+  const { error } = await supabase.from("categories").insert({
+    tenant_id: input.tenantId,
+    name,
+    slug,
+    is_active: true,
+  });
+
+  if (error) return { error: "Не удалось создать раздел" };
+  return { ok: true };
+}
+
 export async function listProductsForTenant(
   tenantId: string,
 ): Promise<ProductWithVariants[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_variants(*)")
+    .select("*, categories(id, name, slug, sort_order, is_active), product_variants(*)")
     .eq("tenant_id", tenantId)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
@@ -32,7 +99,7 @@ export async function getProductForTenant(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_variants(*)")
+    .select("*, categories(id, name, slug, sort_order, is_active), product_variants(*)")
     .eq("tenant_id", tenantId)
     .eq("id", productId)
     .maybeSingle();
@@ -138,6 +205,7 @@ export async function updateProductWithVariants(input: {
   price: number;
   description?: string | null;
   images: string[];
+  categoryId?: string | null;
   isActive: boolean;
   variants: Array<VariantInput & { id?: string }>;
 }): Promise<{ ok: true } | { error: string }> {
@@ -155,6 +223,7 @@ export async function updateProductWithVariants(input: {
       price: input.price,
       description: input.description?.trim() || null,
       images: input.images,
+      category_id: input.categoryId ?? null,
       is_active: input.isActive,
     })
     .eq("id", input.productId)
@@ -255,8 +324,6 @@ export async function uploadProductImage(
   tenantId: string,
   file: File,
 ): Promise<{ url: string } | { error: string }> {
-  // Загрузка через service role после проверки membership в action —
-  // не зависит от Storage RLS и работает сразу после создания bucket.
   const { createServiceClient } = await import("@/lib/supabase/service");
   const supabase = createServiceClient();
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";

@@ -35,11 +35,7 @@ export function CatalogLink({
   children: React.ReactNode;
 }) {
   return (
-    <Link
-      href={href}
-      className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium text-white"
-      style={{ backgroundColor: "var(--accent)" }}
-    >
+    <Link href={href} className="sf-btn sf-btn-primary">
       {children}
     </Link>
   );

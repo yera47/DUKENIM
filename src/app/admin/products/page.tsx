@@ -1,5 +1,6 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
+import { CategoryManager } from "@/components/admin/CategoryManager";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
@@ -11,12 +12,18 @@ import {
 } from "@/components/ui/table";
 import { requireAdminMembership } from "@/lib/actions/auth";
 import { formatPrice } from "@/lib/format-price";
-import { listProductsForTenant } from "@/lib/queries/products";
+import {
+  listCategoriesForTenant,
+  listProductsForTenant,
+} from "@/lib/queries/products";
 import { cn } from "@/lib/utils";
 
 export default async function AdminProductsPage() {
   const membership = await requireAdminMembership();
-  const products = await listProductsForTenant(membership.tenant_id);
+  const [products, categories] = await Promise.all([
+    listProductsForTenant(membership.tenant_id),
+    listCategoriesForTenant(membership.tenant_id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -35,6 +42,8 @@ export default async function AdminProductsPage() {
         </Link>
       </div>
 
+      <CategoryManager categories={categories} />
+
       {products.length === 0 ? (
         <p className="text-muted-foreground text-sm">
           Пока пусто. Добавьте первый товар — фото, название, цена, размеры.
@@ -45,6 +54,7 @@ export default async function AdminProductsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Товар</TableHead>
+                <TableHead>Раздел</TableHead>
                 <TableHead>Цена</TableHead>
                 <TableHead>Остаток</TableHead>
                 <TableHead>Статус</TableHead>
@@ -66,6 +76,7 @@ export default async function AdminProductsPage() {
                         {product.title}
                       </Link>
                     </TableCell>
+                    <TableCell>{product.categories?.name ?? "—"}</TableCell>
                     <TableCell>{formatPrice(product.price)}</TableCell>
                     <TableCell>{stock}</TableCell>
                     <TableCell>

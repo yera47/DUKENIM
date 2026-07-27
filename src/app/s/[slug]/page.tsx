@@ -15,47 +15,48 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
   if (!tenant) notFound();
 
   const products = await listPublicProducts(tenant.id);
-  const featured = products.filter((p) => p.is_featured).slice(0, 4);
-  const showcase = featured.length > 0 ? featured : products.slice(0, 4);
+  const featured = products.filter((p) => p.is_featured).slice(0, 6);
+  const showcase = featured.length > 0 ? featured : products.slice(0, 6);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-10 px-4 py-8">
-      <section className="space-y-4 py-6">
-        <div
-          className="h-1.5 w-16 rounded-full"
-          style={{ backgroundColor: "var(--accent)" }}
-          aria-hidden
-        />
-        <h1
-          className="text-4xl font-semibold tracking-tight"
-          style={{ color: "var(--accent)" }}
-        >
+    <main className="sf-container space-y-14 py-10 pb-24 md:py-14">
+      <section className="sf-fade-up max-w-xl space-y-5 pt-4">
+        <p className="text-[12px] tracking-[0.18em] uppercase text-[var(--sf-muted)]">
+          {tenant.city}
+        </p>
+        <h1 className="text-[2.35rem] leading-[1.05] font-medium tracking-[-0.04em] text-[var(--sf-fg)] md:text-5xl">
           {tenant.name}
         </h1>
         {tenant.tagline ? (
-          <p className="text-muted-foreground max-w-xl text-lg">
+          <p className="max-w-md text-[15px] leading-relaxed text-[var(--sf-muted)]">
             {tenant.tagline}
           </p>
         ) : null}
-        <p className="text-sm text-foreground/70">{tenant.city}</p>
-        <CatalogLink href={`/s/${tenant.slug}/catalog`}>В каталог</CatalogLink>
+        <div className="pt-2">
+          <CatalogLink href={`/s/${tenant.slug}/catalog`}>В каталог</CatalogLink>
+        </div>
       </section>
 
       {showcase.length > 0 ? (
-        <section className="space-y-4">
-          <h2 className="text-lg font-medium">Товары</h2>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {showcase.map((product) => (
+        <section className="space-y-6">
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="text-[13px] tracking-[0.14em] uppercase text-[var(--sf-muted)]">
+              Избранное
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
+            {showcase.map((product, index) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 tenantSlug={tenant.slug}
+                index={index}
               />
             ))}
           </div>
         </section>
       ) : (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-[var(--sf-muted)]">
           Пока нет товаров. Добавьте их в кабинете.
         </p>
       )}

@@ -18,15 +18,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   return (
-    <main className="mx-auto grid max-w-5xl gap-8 px-4 py-8 md:grid-cols-2">
-      <div className="space-y-3">
+    <main className="sf-container grid gap-10 py-8 pb-28 md:grid-cols-2 md:gap-14 md:py-12">
+      <div className="space-y-4">
         <Link
           href={`/s/${tenant.slug}/catalog`}
-          className="text-muted-foreground text-sm"
+          className="text-[13px] text-[var(--sf-muted)] transition hover:text-[var(--sf-fg)]"
         >
           ← Каталог
         </Link>
-        <div className="bg-muted aspect-[4/5] overflow-hidden rounded-xl">
+        <div
+          className="aspect-[4/5] overflow-hidden bg-[var(--sf-soft)] shadow-[var(--sf-shadow)]"
+          style={{ borderRadius: "var(--sf-radius-card)" }}
+        >
           {product.images[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -35,8 +38,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
               className="size-full object-cover"
             />
           ) : (
-            <div className="text-muted-foreground flex size-full items-center justify-center text-sm">
-              Нет фото
+            <div className="flex size-full items-center justify-center">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                className="text-[var(--sf-muted)] opacity-50"
+                aria-hidden
+              >
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <circle cx="8.5" cy="10" r="1.5" />
+                <path d="M21 16l-5.5-5.5L6 20" />
+              </svg>
             </div>
           )}
         </div>
@@ -48,19 +64,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 key={url}
                 src={url}
                 alt=""
-                className="size-16 rounded-md object-cover"
+                className="size-16 rounded-[10px] object-cover"
               />
             ))}
           </div>
         ) : null}
       </div>
 
-      <div className="space-y-4">
-        <h1 className="text-3xl font-semibold tracking-tight">
+      <div className="space-y-5 md:pt-10">
+        <h1 className="text-[2rem] leading-tight font-medium tracking-[-0.035em] text-[var(--sf-fg)] md:text-4xl">
           {product.title}
         </h1>
         {product.description ? (
-          <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+          <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-[var(--sf-muted)]">
             {product.description}
           </p>
         ) : null}

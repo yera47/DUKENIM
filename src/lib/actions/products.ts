@@ -1,10 +1,11 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminMembership } from "@/lib/actions/auth";
 import {
+  createCategoryForTenant,
   createProductWithVariants,
   updateProductWithVariants,
   uploadProductImage,
@@ -26,11 +27,24 @@ function parseVariants(formData: FormData) {
     stock_qty: Math.max(0, Number.parseInt(stocks[index] ?? "0", 10) || 0),
   }));
 
-  if (variants.length === 0) {
-    return [{ size: null, stock_qty: 0 }];
-  }
+  return variants.length > 0 ? variants : [{ size: null, stock_qty: 0 }];
+}
 
-  return variants;
+export async function createCategoryAction(
+  _prev: ProductActionState,
+  formData: FormData,
+): Promise<ProductActionState> {
+  const membership = await requireAdminMembership();
+  const name = String(formData.get("name") ?? "").trim();
+  const result = await createCategoryForTenant({
+    tenantId: membership.tenant_id,
+    name,
+  });
+
+  if ("error" in result) return { error: result.error };
+  revalidatePath("/admin/products");
+  revalidatePath("/admin/products/new");
+  return { success: "Раздел добавлен" };
 }
 
 export async function createProductAction(
@@ -41,6 +55,7 @@ export async function createProductAction(
   const title = String(formData.get("title") ?? "").trim();
   const price = Number.parseInt(String(formData.get("price") ?? "0"), 10);
   const description = String(formData.get("description") ?? "");
+  const categoryId = String(formData.get("category_id") ?? "") || null;
   const imageUrls = formData
     .getAll("image_url")
     .map((v) => String(v))
@@ -56,6 +71,7 @@ export async function createProductAction(
     title,
     price,
     description,
+    categoryId,
     images: imageUrls,
     variants: parseVariants(formData),
   });
@@ -77,6 +93,7 @@ export async function updateProductAction(
   const title = String(formData.get("title") ?? "").trim();
   const price = Number.parseInt(String(formData.get("price") ?? "0"), 10);
   const description = String(formData.get("description") ?? "");
+  const categoryId = String(formData.get("category_id") ?? "") || null;
   const isActive = formData.get("is_active") === "on";
   const imageUrls = formData
     .getAll("image_url")
@@ -95,6 +112,7 @@ export async function updateProductAction(
     title,
     price,
     description,
+    categoryId,
     images: imageUrls,
     isActive,
     variants: parseVariants(formData),

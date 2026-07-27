@@ -1,0 +1,97 @@
+/* Storefront-only quiet luxury tokens. Does not affect /admin. */
+
+.storefront {
+  --sf-bg: #fafaf8;
+  --sf-fg: #1a1a1a;
+  --sf-muted: #6b6b66;
+  --sf-line: #ebebe6;
+  --sf-surface: #ffffff;
+  --sf-soft: #f3f3ef;
+  --sf-radius-card: 14px;
+  --sf-radius-btn: 11px;
+  --sf-shadow: 0 1px 2px rgb(26 26 26 / 4%);
+  --background: var(--sf-bg);
+  --foreground: var(--sf-fg);
+  --card: var(--sf-surface);
+  --card-foreground: var(--sf-fg);
+  --muted: var(--sf-soft);
+  --muted-foreground: var(--sf-muted);
+  --border: var(--sf-line);
+  --input: var(--sf-line);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --ring: var(--accent);
+  --radius: 0.7rem;
+  color: var(--sf-fg);
+  background: var(--sf-bg);
+  font-feature-settings: "ss01" on, "cv11" on;
+}
+
+.storefront .sf-container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+  padding-inline: 1.25rem;
+}
+
+.storefront .sf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  border-radius: var(--sf-radius-btn);
+  padding-inline: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition:
+    transform 160ms ease-out,
+    background-color 160ms ease-out,
+    color 160ms ease-out,
+    opacity 160ms ease-out;
+}
+
+.storefront .sf-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.storefront .sf-btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.storefront .sf-btn-primary:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.storefront .sf-btn-ghost {
+  background: transparent;
+  color: var(--sf-fg);
+}
+
+.storefront .sf-btn-ghost:hover {
+  background: var(--sf-soft);
+}
+
+.storefront .sf-fade-up {
+  animation: sf-fade-up 420ms ease-out both;
+}
+
+@keyframes sf-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront .sf-fade-up,
+  .storefront .sf-btn {
+    animation: none;
+    transition: none;
+  }
+}

@@ -120,6 +120,7 @@ export function CheckoutForm({
       }
 
       clear();
+      navigator.vibrate?.(12);
       const qs = result.whatsappUrl
         ? `?wa=${encodeURIComponent(result.whatsappUrl)}`
         : "";
@@ -129,16 +130,16 @@ export function CheckoutForm({
 
   return (
     <div className="space-y-6">
-      <div className="text-muted-foreground flex gap-2 text-xs uppercase tracking-wide">
-        <span className={step === 1 ? "text-foreground font-medium" : ""}>
+      <div className="flex gap-2 text-[11px] tracking-[0.14em] uppercase text-[var(--sf-muted)]">
+        <span className={step === 1 ? "font-medium text-[var(--sf-fg)]" : ""}>
           1. Контакты
         </span>
         <span>·</span>
-        <span className={step === 2 ? "text-foreground font-medium" : ""}>
+        <span className={step === 2 ? "font-medium text-[var(--sf-fg)]" : ""}>
           2. Получение
         </span>
         <span>·</span>
-        <span className={step === 3 ? "text-foreground font-medium" : ""}>
+        <span className={step === 3 ? "font-medium text-[var(--sf-fg)]" : ""}>
           3. Подтверждение
         </span>
       </div>
@@ -308,10 +309,9 @@ export function CheckoutForm({
             </Button>
             <Button
               type="button"
-              className="flex-1"
+              className="sf-btn sf-btn-primary flex-1"
               disabled={pending}
               onClick={submit}
-              style={{ backgroundColor: "var(--accent)", color: "white" }}
             >
               {pending ? "Оформляем…" : "Подтвердить заказ"}
             </Button>

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format-price";
 import type { PublicProduct } from "@/lib/queries/catalog";
 import { useCartStore } from "@/lib/store/cart";
@@ -44,26 +43,29 @@ export function ProductBuyBox({ product, tenantSlug }: ProductBuyBoxProps) {
       unitPrice,
       imageUrl: product.images[0] ?? null,
     });
+    navigator.vibrate?.(10);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <p className="text-2xl font-semibold" style={{ color: "var(--accent)" }}>
+        <p className="text-2xl font-medium tracking-[-0.03em] text-[var(--sf-fg)]">
           {formatPrice(unitPrice)}
         </p>
         {product.old_price ? (
-          <p className="text-muted-foreground text-sm line-through">
+          <p className="mt-1 text-sm text-[var(--sf-muted)] line-through">
             {formatPrice(product.old_price)}
           </p>
         ) : null}
       </div>
 
       {variants.length > 0 ? (
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Размер</p>
+        <div className="space-y-3">
+          <p className="text-[13px] font-medium tracking-wide text-[var(--sf-fg)]">
+            Размер
+          </p>
           <div className="flex flex-wrap gap-2">
             {variants.map((variant) => {
               const unavailable = variant.stock_qty <= 0;
@@ -74,7 +76,7 @@ export function ProductBuyBox({ product, tenantSlug }: ProductBuyBoxProps) {
                   type="button"
                   disabled={unavailable}
                   onClick={() => setSelectedId(variant.id)}
-                  className="min-w-12 rounded-lg border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+                  className="min-w-12 rounded-[10px] border border-[var(--sf-line)] px-3.5 py-2.5 text-sm transition duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-35"
                   style={
                     isSelected && !unavailable
                       ? {
@@ -91,26 +93,17 @@ export function ProductBuyBox({ product, tenantSlug }: ProductBuyBoxProps) {
               );
             })}
           </div>
-          <p className="text-muted-foreground text-xs">
-            Серые размеры недоступны, но остаются видимыми.
-          </p>
         </div>
       ) : null}
 
-      <Button
+      <button
         type="button"
-        className="w-full"
-        size="lg"
+        className="sf-btn sf-btn-primary w-full disabled:opacity-40"
         disabled={!canAdd}
         onClick={handleAdd}
-        style={
-          canAdd
-            ? { backgroundColor: "var(--accent)", color: "white" }
-            : undefined
-        }
       >
         {added ? "Добавлено" : canAdd ? "В корзину" : "Нет в наличии"}
-      </Button>
+      </button>
     </div>
   );
 }

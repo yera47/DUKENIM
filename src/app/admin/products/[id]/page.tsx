@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 
 import { ProductForm } from "@/components/admin/ProductForm";
 import { requireAdminMembership } from "@/lib/actions/auth";
-import { getProductForTenant } from "@/lib/queries/products";
+import {
+  getProductForTenant,
+  listCategoriesForTenant,
+} from "@/lib/queries/products";
 
 type EditProductPageProps = {
   params: Promise<{ id: string }>;
@@ -12,7 +15,10 @@ type EditProductPageProps = {
 export default async function EditProductPage({ params }: EditProductPageProps) {
   const membership = await requireAdminMembership();
   const { id } = await params;
-  const product = await getProductForTenant(membership.tenant_id, id);
+  const [product, categories] = await Promise.all([
+    getProductForTenant(membership.tenant_id, id),
+    listCategoriesForTenant(membership.tenant_id),
+  ]);
 
   if (!product) notFound();
 
@@ -28,9 +34,11 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
       <ProductForm
         mode="edit"
         productId={product.id}
+        categories={categories}
         initial={{
           title: product.title,
           price: product.price,
+          category_id: product.category_id,
           description: product.description,
           images: product.images,
           is_active: product.is_active,

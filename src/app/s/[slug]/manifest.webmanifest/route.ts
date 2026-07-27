@@ -13,9 +13,10 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   const accent = resolveAccentColor(tenant.accent_color);
-  const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
   const startUrl = `/s/${tenant.slug}`;
-  const iconSrc = tenant.logo_url || `${startUrl}/icon`;
+  // PNG-иконки нужны, чтобы Chrome на Android чаще давал кнопку «Установить»
+  const icon192 = `${startUrl}/icon?size=192&generated=1`;
+  const icon512 = `${startUrl}/icon?size=512&generated=1`;
 
   const manifest = {
     name: tenant.name,
@@ -29,23 +30,26 @@ export async function GET(_request: Request, context: RouteContext) {
     lang: "ru",
     icons: [
       {
-        src: iconSrc,
+        src: icon192,
         sizes: "192x192",
-        type: tenant.logo_url ? "image/png" : "image/svg+xml",
-        purpose: "any maskable",
+        type: "image/png",
+        purpose: "any",
       },
       {
-        src: iconSrc,
+        src: icon512,
         sizes: "512x512",
-        type: tenant.logo_url ? "image/png" : "image/svg+xml",
-        purpose: "any maskable",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: icon512,
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
       },
     ],
     id: startUrl,
   };
-
-  // origin reserved for future absolute icon URLs if needed
-  void origin;
 
   return Response.json(manifest, {
     headers: {

@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useMemo, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,39 +12,56 @@ import {
   uploadProductImageAction,
   type ProductActionState,
 } from "@/lib/actions/products";
+import type { ProductCategory } from "@/lib/queries/products";
 
 type VariantDraft = {
   id?: string;
   size: string;
-  stock_qty: number;
+  stockQty: string;
 };
 
 type ProductFormProps = {
   mode: "create" | "edit";
   productId?: string;
+  categories: ProductCategory[];
   initial?: {
     title: string;
     price: number;
+    category_id: string | null;
     description: string | null;
     images: string[];
     is_active: boolean;
-    variants: VariantDraft[];
+    variants: Array<{ id?: string; size: string; stock_qty: number }>;
   };
 };
 
 const initialState: ProductActionState = {};
 
-export function ProductForm({ mode, productId, initial }: ProductFormProps) {
+export function ProductForm({
+  mode,
+  productId,
+  categories,
+  initial,
+}: ProductFormProps) {
   const action = mode === "create" ? createProductAction : updateProductAction;
   const [state, formAction, pending] = useActionState(action, initialState);
   const [images, setImages] = useState<string[]>(initial?.images ?? []);
   const [variants, setVariants] = useState<VariantDraft[]>(
     initial?.variants?.length
-      ? initial.variants
-      : [{ size: "", stock_qty: 0 }],
+      ? initial.variants.map((variant) => ({
+          id: variant.id,
+          size: variant.size,
+          stockQty: String(variant.stock_qty),
+        }))
+      : [{ size: "", stockQty: "0" }],
   );
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, startUpload] = useTransition();
+
+  const categoryOptions = useMemo(
+    () => categories.filter((category) => category.is_active),
+    [categories],
+  );
 
   function onFileChange(fileList: FileList | null) {
     const file = fileList?.[0];
@@ -97,12 +114,7 @@ export function ProductForm({ mode, productId, initial }: ProductFormProps) {
         <div className="flex flex-wrap gap-2">
           {images.map((url) => (
             <div key={url} className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={url}
-                alt=""
-                className="size-20 rounded-md object-cover"
-              />
+              <img src={url} alt="" className="size-20 rounded-md object-cover" />
               <input type="hidden" name="image_url" value={url} />
               <button
                 type="button"
@@ -127,19 +139,37 @@ export function ProductForm({ mode, productId, initial }: ProductFormProps) {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="price">Цена, ₸</Label>
-        <Input
-          id="price"
-          name="price"
-          type="number"
-          inputMode="numeric"
-          min={0}
-          step={1}
-          required
-          defaultValue={initial?.price ?? ""}
-          placeholder="15000"
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="price">Цена, ₸</Label>
+          <Input
+            id="price"
+            name="price"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            step={1}
+            required
+            defaultValue={initial?.price ?? ""}
+            placeholder="15000"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="category_id">Раздел</Label>
+          <select
+            id="category_id"
+            name="category_id"
+            defaultValue={initial?.category_id ?? ""}
+            className="border-input bg-background h-8 w-full rounded-lg border px-2.5 text-sm"
+          >
+            <option value="">Без раздела</option>
+            {categoryOptions.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -150,7 +180,7 @@ export function ProductForm({ mode, productId, initial }: ProductFormProps) {
             variant="outline"
             size="sm"
             onClick={() =>
-              setVariants((prev) => [...prev, { size: "", stock_qty: 0 }])
+              setVariants((prev) => [...prev, { size: "", stockQty: "0" }])
             }
           >
             + размер
@@ -162,11 +192,7 @@ export function ProductForm({ mode, productId, initial }: ProductFormProps) {
         <div className="space-y-2">
           {variants.map((variant, index) => (
             <div key={variant.id ?? `new-${index}`} className="flex gap-2">
-              {variant.id ? (
-                <input type="hidden" name="variant_id" value={variant.id} />
-              ) : (
-                <input type="hidden" name="variant_id" value="" />
-              )}
+              <input type="hidden" name="variant_id" value={variant.id ?? ""} />
               <Input
                 name="variant_size"
                 placeholder="S / M / L или пусто"
@@ -187,12 +213,13 @@ export function ProductForm({ mode, productId, initial }: ProductFormProps) {
                 min={0}
                 step={1}
                 className="w-28"
-                value={variant.stock_qty}
+                value={variant.stockQty}
                 onChange={(e) => {
-                  const value = Number.parseInt(e.target.value || "0", 10) || 0;
+                  const value = e.target.value;
+                  if (value !== "" && !/^\d+$/.test(value)) return;
                   setVariants((prev) =>
                     prev.map((row, i) =>
-                      i === index ? { ...row, stock_qty: value } : row,
+                      i === index ? { ...row, stockQty: value } : row,
                     ),
                   );
                 }}

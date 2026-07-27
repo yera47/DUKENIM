@@ -22,8 +22,10 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   ]);
 
   return (
-    <main className="mx-auto max-w-lg space-y-6 px-4 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Оформление</h1>
+    <main className="sf-container max-w-lg space-y-8 py-10 pb-28">
+      <h1 className="text-3xl font-medium tracking-[-0.03em] text-[var(--sf-fg)]">
+        Оформление
+      </h1>
       <CheckoutForm
         tenantId={tenant.id}
         tenantSlug={tenant.slug}

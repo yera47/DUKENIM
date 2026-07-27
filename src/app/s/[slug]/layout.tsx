@@ -9,6 +9,8 @@ import {
   resolveAccentColor,
 } from "@/lib/queries/tenants";
 
+import "../storefront.css";
+
 type StorefrontLayoutProps = {
   children: ReactNode;
   params: Promise<{ slug: string }>;
@@ -39,8 +41,8 @@ export async function generateMetadata({
       statusBarStyle: "default",
     },
     icons: {
-      icon: tenant.logo_url || `/s/${tenant.slug}/icon`,
-      apple: tenant.logo_url || `/s/${tenant.slug}/icon`,
+      icon: tenant.logo_url || `/s/${tenant.slug}/icon?size=192&generated=1`,
+      apple: tenant.logo_url || `/s/${tenant.slug}/icon?size=192&generated=1`,
     },
   };
 }
@@ -59,10 +61,11 @@ export default async function StorefrontLayout({
   const accent = resolveAccentColor(tenant.accent_color);
   const style = {
     "--accent": accent,
+    "--sf-accent": accent,
   } as CSSProperties;
 
   return (
-    <div className="min-h-screen bg-background text-foreground" style={style}>
+    <div className="storefront min-h-screen font-sans antialiased" style={style}>
       <StorefrontShell tenant={tenant} />
       {children}
       <PwaRegister slug={tenant.slug} />

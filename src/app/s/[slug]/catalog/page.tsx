@@ -23,14 +23,16 @@ export default async function CatalogPage({ params }: CatalogPageProps) {
   ]);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Каталог</h1>
+    <main className="sf-container space-y-8 py-10 pb-24">
+      <h1 className="text-3xl font-medium tracking-[-0.03em] text-[var(--sf-fg)]">
+        Каталог
+      </h1>
 
       {categories.length > 0 ? (
         <div className="flex flex-wrap gap-2">
           <Link
             href={`/s/${tenant.slug}/catalog`}
-            className="rounded-full border px-3 py-1 text-sm"
+            className="rounded-full border border-[var(--sf-line)] px-3.5 py-1.5 text-[13px] text-[var(--sf-fg)]"
             style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
           >
             Все
@@ -39,7 +41,7 @@ export default async function CatalogPage({ params }: CatalogPageProps) {
             <Link
               key={category.id}
               href={`/s/${tenant.slug}/category/${category.slug}`}
-              className="rounded-full border px-3 py-1 text-sm hover:bg-muted"
+              className="rounded-full border border-[var(--sf-line)] px-3.5 py-1.5 text-[13px] text-[var(--sf-muted)] transition hover:text-[var(--sf-fg)]"
             >
               {category.name}
             </Link>
@@ -48,14 +50,15 @@ export default async function CatalogPage({ params }: CatalogPageProps) {
       ) : null}
 
       {products.length === 0 ? (
-        <p className="text-muted-foreground text-sm">Товаров пока нет</p>
+        <p className="text-sm text-[var(--sf-muted)]">Товаров пока нет</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {products.map((product) => (
+        <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
+          {products.map((product, index) => (
             <ProductCard
               key={product.id}
               product={product}
               tenantSlug={tenant.slug}
+              index={index}
             />
           ))}
         </div>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format-price";
 import { useCartStore } from "@/lib/store/cart";
 
@@ -18,24 +17,27 @@ export function CartView({ tenantSlug }: CartViewProps) {
 
   if (items.length === 0) {
     return (
-      <div className="space-y-4">
-        <p className="text-muted-foreground text-sm">Корзина пуста</p>
-        <Link href={`/s/${tenantSlug}/catalog`}>
-          <Button variant="outline">В каталог</Button>
+      <div className="space-y-5">
+        <p className="text-sm text-[var(--sf-muted)]">Корзина пуста</p>
+        <Link href={`/s/${tenantSlug}/catalog`} className="sf-btn sf-btn-primary">
+          В каталог
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <ul className="space-y-4">
         {items.map((item) => (
           <li
             key={item.variantId}
-            className="flex gap-3 rounded-xl border bg-background p-3"
+            className="flex gap-4 border-b border-[var(--sf-line)] pb-4"
           >
-            <div className="bg-muted size-20 shrink-0 overflow-hidden rounded-lg">
+            <div
+              className="size-20 shrink-0 overflow-hidden bg-[var(--sf-soft)]"
+              style={{ borderRadius: "10px" }}
+            >
               {item.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -45,59 +47,57 @@ export function CartView({ tenantSlug }: CartViewProps) {
                 />
               ) : null}
             </div>
-            <div className="min-w-0 flex-1 space-y-2">
+            <div className="min-w-0 flex-1 space-y-3">
               <div>
-                <p className="font-medium">{item.title}</p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-[15px] font-medium tracking-[-0.01em]">
+                  {item.title}
+                </p>
+                <p className="mt-1 text-[12px] text-[var(--sf-muted)]">
                   {item.size ? `Размер ${item.size}` : "Без размера"} ·{" "}
                   {formatPrice(item.unitPrice)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <Button
+                <button
                   type="button"
-                  size="sm"
-                  variant="outline"
+                  className="sf-btn h-8 min-h-8 rounded-[10px] border border-[var(--sf-line)] px-3"
                   onClick={() => setQty(item.variantId, item.qty - 1)}
                 >
                   −
-                </Button>
+                </button>
                 <span className="w-6 text-center text-sm">{item.qty}</span>
-                <Button
+                <button
                   type="button"
-                  size="sm"
-                  variant="outline"
+                  className="sf-btn h-8 min-h-8 rounded-[10px] border border-[var(--sf-line)] px-3"
                   onClick={() => setQty(item.variantId, item.qty + 1)}
                 >
                   +
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
-                  size="sm"
-                  variant="ghost"
+                  className="ml-auto text-[12px] text-[var(--sf-muted)]"
                   onClick={() => removeItem(item.variantId)}
                 >
                   Удалить
-                </Button>
+                </button>
               </div>
             </div>
           </li>
         ))}
       </ul>
 
-      <div className="flex items-center justify-between border-t pt-4">
-        <p className="text-sm">Итого</p>
-        <p className="text-lg font-semibold">{formatPrice(subtotal())}</p>
+      <div className="flex items-center justify-between pt-2">
+        <p className="text-sm text-[var(--sf-muted)]">Итого</p>
+        <p className="text-lg font-medium tracking-[-0.02em]">
+          {formatPrice(subtotal())}
+        </p>
       </div>
 
-      <Link href={`/s/${tenantSlug}/checkout`} className="block">
-        <Button
-          className="w-full"
-          size="lg"
-          style={{ backgroundColor: "var(--accent)", color: "white" }}
-        >
-          Оформить
-        </Button>
+      <Link
+        href={`/s/${tenantSlug}/checkout`}
+        className="sf-btn sf-btn-primary w-full"
+      >
+        Оформить
       </Link>
     </div>
   );

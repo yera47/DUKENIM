@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
@@ -30,6 +30,24 @@ type SettingsFormsProps = {
   zones: AdminDeliveryZone[];
 };
 
+type ZoneDraft = {
+  name: string;
+  cost: string;
+  free_from: string;
+  eta_text: string;
+  sort_order: string;
+  is_active: boolean;
+};
+
+const defaultZone: ZoneDraft = {
+  name: "",
+  cost: "0",
+  free_from: "",
+  eta_text: "",
+  sort_order: "0",
+  is_active: true,
+};
+
 export function SettingsForms({ brand, delivery, zones }: SettingsFormsProps) {
   const router = useRouter();
   const [brandState, brandAction, brandPending] = useActionState(
@@ -49,6 +67,7 @@ export function SettingsForms({ brand, delivery, zones }: SettingsFormsProps) {
   const [uploading, startUpload] = useTransition();
   const [deleting, startDelete] = useTransition();
   const [zoneMsg, setZoneMsg] = useState<string | null>(null);
+  const [zoneDraft, setZoneDraft] = useState<ZoneDraft>(defaultZone);
 
   function onLogo(fileList: FileList | null) {
     const file = fileList?.[0];
@@ -64,6 +83,11 @@ export function SettingsForms({ brand, delivery, zones }: SettingsFormsProps) {
       }
       setLogoUrl(result.url);
     });
+  }
+
+  function onZoneNumberChange(field: "cost" | "free_from" | "sort_order", value: string) {
+    if (value !== "" && !/^\d+$/.test(value)) return;
+    setZoneDraft((prev) => ({ ...prev, [field]: value }));
   }
 
   return (
@@ -93,7 +117,6 @@ export function SettingsForms({ brand, delivery, zones }: SettingsFormsProps) {
               <p className="text-sm text-destructive">{uploadError}</p>
             ) : null}
             {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logoUrl}
                 alt=""
@@ -270,19 +293,50 @@ export function SettingsForms({ brand, delivery, zones }: SettingsFormsProps) {
         <form action={zoneAction} className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="zone_name">Новая зона</Label>
-            <Input id="zone_name" name="name" required placeholder="Астана" />
+            <Input
+              id="zone_name"
+              name="name"
+              required
+              placeholder="Астана"
+              value={zoneDraft.name}
+              onChange={(e) =>
+                setZoneDraft((prev) => ({ ...prev, name: e.target.value }))
+              }
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="cost">Стоимость, ₸</Label>
-            <Input id="cost" name="cost" type="number" min={0} defaultValue={0} />
+            <Input
+              id="cost"
+              name="cost"
+              type="number"
+              min={0}
+              value={zoneDraft.cost}
+              onChange={(e) => onZoneNumberChange("cost", e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="free_from">Бесплатно от, ₸</Label>
-            <Input id="free_from" name="free_from" type="number" min={0} />
+            <Input
+              id="free_from"
+              name="free_from"
+              type="number"
+              min={0}
+              value={zoneDraft.free_from}
+              onChange={(e) => onZoneNumberChange("free_from", e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="eta_text">Срок</Label>
-            <Input id="eta_text" name="eta_text" placeholder="1–3 часа" />
+            <Input
+              id="eta_text"
+              name="eta_text"
+              placeholder="1-3 часа"
+              value={zoneDraft.eta_text}
+              onChange={(e) =>
+                setZoneDraft((prev) => ({ ...prev, eta_text: e.target.value }))
+              }
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="sort_order">Порядок</Label>
@@ -290,11 +344,19 @@ export function SettingsForms({ brand, delivery, zones }: SettingsFormsProps) {
               id="sort_order"
               name="sort_order"
               type="number"
-              defaultValue={0}
+              value={zoneDraft.sort_order}
+              onChange={(e) => onZoneNumberChange("sort_order", e.target.value)}
             />
           </div>
           <label className="flex items-center gap-2 text-sm sm:col-span-2">
-            <input type="checkbox" name="is_active" defaultChecked />
+            <input
+              type="checkbox"
+              name="is_active"
+              checked={zoneDraft.is_active}
+              onChange={(e) =>
+                setZoneDraft((prev) => ({ ...prev, is_active: e.target.checked }))
+              }
+            />
             Активна
           </label>
           <Button type="submit" disabled={zonePending} className="sm:col-span-2">

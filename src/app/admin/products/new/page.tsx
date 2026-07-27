@@ -1,10 +1,12 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { ProductForm } from "@/components/admin/ProductForm";
 import { requireAdminMembership } from "@/lib/actions/auth";
+import { listCategoriesForTenant } from "@/lib/queries/products";
 
 export default async function NewProductPage() {
-  await requireAdminMembership();
+  const membership = await requireAdminMembership();
+  const categories = await listCategoriesForTenant(membership.tenant_id);
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
@@ -14,10 +16,10 @@ export default async function NewProductPage() {
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">Новый товар</h1>
         <p className="text-muted-foreground text-sm">
-          Фото → название → цена → размеры с остатками
+          Фото → название → раздел → цена → размеры с остатками
         </p>
       </div>
-      <ProductForm mode="create" />
+      <ProductForm mode="create" categories={categories} />
     </div>
   );
 }
