@@ -11,11 +11,14 @@ export type PublicTenant = Pick<
   | "logo_url"
   | "accent_color"
   | "city"
+  | "address"
+  | "phone"
+  | "whatsapp"
   | "status"
 >;
 
 const TENANT_SELECT =
-  "id,slug,custom_domain,name,tagline,logo_url,accent_color,city,status";
+  "id,slug,custom_domain,name,tagline,logo_url,accent_color,city,address,phone,whatsapp,status";
 
 const FALLBACK_ACCENT = "#1F5F4E";
 

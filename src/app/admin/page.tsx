@@ -12,15 +12,29 @@ export default async function AdminDashboardPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Дашборд</h1>
         <p className="text-muted-foreground text-sm">
-          {membership.tenant.name} · пока пусто, добавьте товары
+          {membership.tenant.name}
         </p>
       </div>
-      <Link
-        href="/admin/products/new"
-        className={cn(buttonVariants({ size: "lg" }))}
-      >
-        Добавить товар
-      </Link>
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/admin/products/new"
+          className={cn(buttonVariants({ size: "lg" }))}
+        >
+          Добавить товар
+        </Link>
+        <Link
+          href="/admin/orders"
+          className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+        >
+          Заказы
+        </Link>
+        <Link
+          href={`/s/${membership.tenant.slug}`}
+          className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}
+        >
+          Открыть витрину
+        </Link>
+      </div>
     </div>
   );
 }

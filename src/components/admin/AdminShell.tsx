@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/admin", label: "Дашборд" },
   { href: "/admin/products", label: "Товары" },
+  { href: "/admin/orders", label: "Заказы" },
 ] as const;
 
 type AdminShellProps = {

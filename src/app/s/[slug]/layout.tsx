@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
 
+import { StorefrontShell } from "@/components/storefront/StorefrontShell";
 import {
   getActiveTenantBySlug,
   resolveAccentColor,
@@ -48,6 +49,7 @@ export default async function StorefrontLayout({
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={style}>
+      <StorefrontShell tenant={tenant} />
       {children}
     </div>
   );
