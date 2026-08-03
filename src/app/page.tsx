@@ -5,18 +5,16 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-  const hasService = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   let dbOk = false;
   let tenantName: string | null = null;
-  let tenantCount = 0;
   let error: string | null = null;
 
   try {
     const supabase = await createClient();
-    const { data, error: qError, count } = await supabase
+    const { data, error: qError } = await supabase
       .from("tenants")
-      .select("name", { count: "exact" })
+      .select("name")
       .eq("slug", "test")
       .maybeSingle();
 
@@ -25,38 +23,44 @@ export default async function HomePage() {
     } else {
       dbOk = true;
       tenantName = data?.name ?? null;
-      tenantCount = count ?? (data ? 1 : 0);
     }
   } catch (e) {
     error = e instanceof Error ? e.message : "Неизвестная ошибка";
   }
 
   const checks = [
-    { label: "Next.js 15 + TypeScript", ok: true },
-    { label: "Tailwind + shadcn/ui", ok: true },
-    { label: "Supabase URL", ok: Boolean(url) },
-    { label: "Anon key", ok: hasAnon },
-    { label: "Service role key", ok: hasService },
-    { label: "База отвечает (таблица tenants)", ok: dbOk },
-    {
-      label: "Тестовый магазин slug=test",
-      ok: Boolean(tenantName),
-    },
+    { label: "Сайт запускается (Next.js)", ok: true },
+    { label: "Стили подключены", ok: true },
+    { label: "Ключи Supabase найдены", ok: Boolean(url && hasAnon) },
+    { label: "База отвечает", ok: dbOk },
+    { label: "Тестовый магазин создан", ok: Boolean(tenantName) },
   ];
+
+  const allOk = checks.every((c) => c.ok);
 
   return (
     <main className="mx-auto max-w-2xl space-y-8 px-6 py-16">
       <div className="space-y-3">
         <p className="text-sm tracking-wide text-emerald-800 uppercase">
-          Dukenim · Шаг 1
+          Dukenim · Шаг 1 из 13
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">
-          Каркас и база готовы
+          {allOk ? "Каркас и база работают" : "Что-то ещё не готово"}
         </h1>
-        <p className="text-muted-foreground leading-relaxed">
-          Это фундамент платформы: сайт на Next.js, стили, подключение к
-          Supabase и все таблицы из ТЗ. Вход, кабинет и витрину ещё не делали —
-          это следующие шаги.
+        <p className="leading-relaxed text-neutral-600">
+          Сейчас сделан только фундамент: сайт + база данных. Витрины магазина
+          и кабинета ещё нет — их делаем на следующих шагах.
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+        <p className="font-medium">Если открывали старую ссылку — это нормально</p>
+        <p className="mt-1 leading-relaxed">
+          Адрес{" "}
+          <code className="rounded bg-white px-1">/s/test</code> сейчас даёт
+          404. Мы специально убрали старую витрину, чтобы начать с чистого ТЗ.
+          Рабочая страница Шага 1 — главная:{" "}
+          <code className="rounded bg-white px-1">/</code>
         </p>
       </div>
 
@@ -79,24 +83,33 @@ export default async function HomePage() {
 
       {tenantName ? (
         <p className="text-sm">
-          Найден магазин: <strong>{tenantName}</strong>
-          {tenantCount ? ` · записей tenants: ${tenantCount}` : null}
+          В базе есть магазин: <strong>{tenantName}</strong> (slug:{" "}
+          <code>test</code>)
         </p>
       ) : null}
 
       {error ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          База ещё не готова или схема не применена: {error}
+          Ошибка базы: {error}
         </p>
       ) : null}
 
-      <div className="text-muted-foreground space-y-2 text-sm leading-relaxed">
+      <div className="space-y-2 text-sm leading-relaxed text-neutral-600">
         <p>
-          <strong>Как проверить:</strong> открой эту страницу локально (
-          <code>npm run dev</code>) — все галочки должны быть зелёными.
+          <strong>Как проверить локально:</strong> в терминале{" "}
+          <code>npm run dev</code>, потом открой{" "}
+          <a className="underline" href="http://localhost:3000">
+            http://localhost:3000
+          </a>
         </p>
         <p>
-          Тестовые аккаунты появятся после сида (см. README / отчёт Шага 1).
+          <strong>Онлайн:</strong>{" "}
+          <a className="underline" href="https://dukenim.vercel.app">
+            https://dukenim.vercel.app
+          </a>
+        </p>
+        <p>
+          Когда скажешь «дальше» — сделаем Шаг 2: вход по email и роли.
         </p>
       </div>
     </main>
