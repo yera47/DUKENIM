@@ -1,8 +1,3 @@
-/**
- * Типы схемы public из миграции 20260724100000_initial_schema.
- * После `supabase start` / линка к проекту перегенерируйте:
- *   npm run db:types
- */
 export type Json =
   | string
   | number
@@ -24,13 +19,11 @@ export type Database = {
           logo_url: string | null;
           accent_color: string;
           city: string;
-          address: string | null;
           phone: string;
           whatsapp: string | null;
           instagram: string | null;
-          working_hours: Json | null;
-          status: Database["public"]["Enums"]["tenant_status"];
           plan: Database["public"]["Enums"]["tenant_plan"];
+          status: Database["public"]["Enums"]["tenant_status"];
           created_at: string;
         };
         Insert: {
@@ -42,33 +35,14 @@ export type Database = {
           logo_url?: string | null;
           accent_color?: string;
           city?: string;
-          address?: string | null;
           phone: string;
           whatsapp?: string | null;
           instagram?: string | null;
-          working_hours?: Json | null;
-          status?: Database["public"]["Enums"]["tenant_status"];
           plan?: Database["public"]["Enums"]["tenant_plan"];
+          status?: Database["public"]["Enums"]["tenant_status"];
           created_at?: string;
         };
-        Update: {
-          id?: string;
-          slug?: string;
-          custom_domain?: string | null;
-          name?: string;
-          tagline?: string | null;
-          logo_url?: string | null;
-          accent_color?: string;
-          city?: string;
-          address?: string | null;
-          phone?: string;
-          whatsapp?: string | null;
-          instagram?: string | null;
-          working_hours?: Json | null;
-          status?: Database["public"]["Enums"]["tenant_status"];
-          plan?: Database["public"]["Enums"]["tenant_plan"];
-          created_at?: string;
-        };
+        Update: Partial<Database["public"]["Tables"]["tenants"]["Insert"]>;
         Relationships: [];
       };
       tenant_users: {
@@ -76,88 +50,116 @@ export type Database = {
           id: string;
           tenant_id: string;
           user_id: string;
-          role: Database["public"]["Enums"]["user_role"];
+          role: Database["public"]["Enums"]["staff_role"];
           created_at: string;
         };
         Insert: {
           id?: string;
           tenant_id: string;
           user_id: string;
-          role?: Database["public"]["Enums"]["user_role"];
+          role?: Database["public"]["Enums"]["staff_role"];
           created_at?: string;
         };
-        Update: {
-          id?: string;
-          tenant_id?: string;
-          user_id?: string;
-          role?: Database["public"]["Enums"]["user_role"];
+        Update: Partial<Database["public"]["Tables"]["tenant_users"]["Insert"]>;
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          user_id: string;
+          role: Database["public"]["Enums"]["profile_role"];
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          role?: Database["public"]["Enums"]["profile_role"];
           created_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: "tenant_users_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-        ];
+        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
       };
       tenant_settings: {
         Row: {
           tenant_id: string;
           delivery_enabled: boolean;
           pickup_enabled: boolean;
-          yandex_enabled: boolean;
-          delivery_note: string | null;
           payment_online: boolean;
           payment_provider: string;
           merchant_id: string | null;
           merchant_key: string | null;
-          loyalty_enabled: boolean;
-          loyalty_percent: number;
-          loyalty_goal: number | null;
           min_order: number;
         };
         Insert: {
           tenant_id: string;
           delivery_enabled?: boolean;
           pickup_enabled?: boolean;
-          yandex_enabled?: boolean;
-          delivery_note?: string | null;
           payment_online?: boolean;
           payment_provider?: string;
           merchant_id?: string | null;
           merchant_key?: string | null;
-          loyalty_enabled?: boolean;
-          loyalty_percent?: number;
-          loyalty_goal?: number | null;
           min_order?: number;
         };
-        Update: {
-          tenant_id?: string;
-          delivery_enabled?: boolean;
-          pickup_enabled?: boolean;
-          yandex_enabled?: boolean;
-          delivery_note?: string | null;
-          payment_online?: boolean;
-          payment_provider?: string;
-          merchant_id?: string | null;
-          merchant_key?: string | null;
-          loyalty_enabled?: boolean;
-          loyalty_percent?: number;
-          loyalty_goal?: number | null;
-          min_order?: number;
+        Update: Partial<
+          Database["public"]["Tables"]["tenant_settings"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          plan: Database["public"]["Enums"]["tenant_plan"];
+          status: Database["public"]["Enums"]["subscription_status"];
+          started_at: string;
+          current_period_end: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "tenant_settings_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: true;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-        ];
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          plan: Database["public"]["Enums"]["tenant_plan"];
+          status?: Database["public"]["Enums"]["subscription_status"];
+          started_at?: string;
+          current_period_end?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["subscriptions"]["Insert"]>;
+        Relationships: [];
+      };
+      change_requests: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          text: string;
+          status: Database["public"]["Enums"]["change_request_status"];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          text: string;
+          status?: Database["public"]["Enums"]["change_request_status"];
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["change_requests"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      messages: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          from_role: Database["public"]["Enums"]["message_from_role"];
+          text: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          from_role: Database["public"]["Enums"]["message_from_role"];
+          text: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["messages"]["Insert"]>;
+        Relationships: [];
       };
       categories: {
         Row: {
@@ -176,23 +178,8 @@ export type Database = {
           sort_order?: number;
           is_active?: boolean;
         };
-        Update: {
-          id?: string;
-          tenant_id?: string;
-          name?: string;
-          slug?: string;
-          sort_order?: number;
-          is_active?: boolean;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "categories_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-        ];
+        Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>;
+        Relationships: [];
       };
       products: {
         Row: {
@@ -223,36 +210,8 @@ export type Database = {
           sort_order?: number;
           created_at?: string;
         };
-        Update: {
-          id?: string;
-          tenant_id?: string;
-          category_id?: string | null;
-          title?: string;
-          description?: string | null;
-          price?: number;
-          old_price?: number | null;
-          images?: string[];
-          is_active?: boolean;
-          is_featured?: boolean;
-          sort_order?: number;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "products_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "products_category_id_fkey";
-            columns: ["category_id"];
-            isOneToOne: false;
-            referencedRelation: "categories";
-            referencedColumns: ["id"];
-          },
-        ];
+        Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
+        Relationships: [];
       };
       product_variants: {
         Row: {
@@ -263,7 +222,6 @@ export type Database = {
           color: string | null;
           sku: string | null;
           stock_qty: number;
-          price_delta: number;
           is_active: boolean;
         };
         Insert: {
@@ -274,36 +232,12 @@ export type Database = {
           color?: string | null;
           sku?: string | null;
           stock_qty?: number;
-          price_delta?: number;
           is_active?: boolean;
         };
-        Update: {
-          id?: string;
-          product_id?: string;
-          tenant_id?: string;
-          size?: string | null;
-          color?: string | null;
-          sku?: string | null;
-          stock_qty?: number;
-          price_delta?: number;
-          is_active?: boolean;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "product_variants_product_id_fkey";
-            columns: ["product_id"];
-            isOneToOne: false;
-            referencedRelation: "products";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "product_variants_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-        ];
+        Update: Partial<
+          Database["public"]["Tables"]["product_variants"]["Insert"]
+        >;
+        Relationships: [];
       };
       customers: {
         Row: {
@@ -315,7 +249,6 @@ export type Database = {
           last_order: string | null;
           orders_count: number;
           total_spent: number;
-          created_at: string;
         };
         Insert: {
           id?: string;
@@ -326,217 +259,9 @@ export type Database = {
           last_order?: string | null;
           orders_count?: number;
           total_spent?: number;
-          created_at?: string;
         };
-        Update: {
-          id?: string;
-          tenant_id?: string;
-          phone?: string;
-          name?: string | null;
-          first_order?: string | null;
-          last_order?: string | null;
-          orders_count?: number;
-          total_spent?: number;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "customers_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      orders: {
-        Row: {
-          id: string;
-          tenant_id: string;
-          customer_id: string | null;
-          order_number: number;
-          source: Database["public"]["Enums"]["order_source"];
-          status: Database["public"]["Enums"]["order_status"];
-          delivery_method: Database["public"]["Enums"]["delivery_method"] | null;
-          delivery_address: string | null;
-          delivery_comment: string | null;
-          delivery_cost: number;
-          subtotal: number;
-          bonus_used: number;
-          bonus_earned: number;
-          total: number;
-          payment_method: Database["public"]["Enums"]["payment_method"] | null;
-          payment_status: Database["public"]["Enums"]["payment_status"];
-          staff_id: string | null;
-          comment: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          tenant_id: string;
-          customer_id?: string | null;
-          // Заполняется триггером set_order_number, если не передан
-          order_number?: number;
-          source?: Database["public"]["Enums"]["order_source"];
-          status?: Database["public"]["Enums"]["order_status"];
-          delivery_method?: Database["public"]["Enums"]["delivery_method"] | null;
-          delivery_address?: string | null;
-          delivery_comment?: string | null;
-          delivery_cost?: number;
-          subtotal: number;
-          bonus_used?: number;
-          bonus_earned?: number;
-          total: number;
-          payment_method?: Database["public"]["Enums"]["payment_method"] | null;
-          payment_status?: Database["public"]["Enums"]["payment_status"];
-          staff_id?: string | null;
-          comment?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          tenant_id?: string;
-          customer_id?: string | null;
-          order_number?: number;
-          source?: Database["public"]["Enums"]["order_source"];
-          status?: Database["public"]["Enums"]["order_status"];
-          delivery_method?: Database["public"]["Enums"]["delivery_method"] | null;
-          delivery_address?: string | null;
-          delivery_comment?: string | null;
-          delivery_cost?: number;
-          subtotal?: number;
-          bonus_used?: number;
-          bonus_earned?: number;
-          total?: number;
-          payment_method?: Database["public"]["Enums"]["payment_method"] | null;
-          payment_status?: Database["public"]["Enums"]["payment_status"];
-          staff_id?: string | null;
-          comment?: string | null;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "orders_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "orders_customer_id_fkey";
-            columns: ["customer_id"];
-            isOneToOne: false;
-            referencedRelation: "customers";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      order_items: {
-        Row: {
-          id: string;
-          order_id: string;
-          tenant_id: string;
-          variant_id: string;
-          title_snapshot: string;
-          price_snapshot: number;
-          qty: number;
-        };
-        Insert: {
-          id?: string;
-          order_id: string;
-          tenant_id: string;
-          variant_id: string;
-          title_snapshot: string;
-          price_snapshot: number;
-          qty: number;
-        };
-        Update: {
-          id?: string;
-          order_id?: string;
-          tenant_id?: string;
-          variant_id?: string;
-          title_snapshot?: string;
-          price_snapshot?: number;
-          qty?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "order_items_order_id_fkey";
-            columns: ["order_id"];
-            isOneToOne: false;
-            referencedRelation: "orders";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "order_items_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "order_items_variant_id_fkey";
-            columns: ["variant_id"];
-            isOneToOne: false;
-            referencedRelation: "product_variants";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      stock_movements: {
-        Row: {
-          id: string;
-          tenant_id: string;
-          variant_id: string;
-          delta: number;
-          reason: Database["public"]["Enums"]["stock_reason"];
-          order_id: string | null;
-          staff_id: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          tenant_id: string;
-          variant_id: string;
-          delta: number;
-          reason: Database["public"]["Enums"]["stock_reason"];
-          order_id?: string | null;
-          staff_id?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          tenant_id?: string;
-          variant_id?: string;
-          delta?: number;
-          reason?: Database["public"]["Enums"]["stock_reason"];
-          order_id?: string | null;
-          staff_id?: string | null;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "stock_movements_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "stock_movements_variant_id_fkey";
-            columns: ["variant_id"];
-            isOneToOne: false;
-            referencedRelation: "product_variants";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "stock_movements_order_id_fkey";
-            columns: ["order_id"];
-            isOneToOne: false;
-            referencedRelation: "orders";
-            referencedColumns: ["id"];
-          },
-        ];
+        Update: Partial<Database["public"]["Tables"]["customers"]["Insert"]>;
+        Relationships: [];
       };
       delivery_zones: {
         Row: {
@@ -559,78 +284,110 @@ export type Database = {
           is_active?: boolean;
           sort_order?: number;
         };
-        Update: {
-          id?: string;
-          tenant_id?: string;
-          name?: string;
-          cost?: number;
-          free_from?: number | null;
-          eta_text?: string | null;
-          is_active?: boolean;
-          sort_order?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "delivery_zones_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-        ];
+        Update: Partial<
+          Database["public"]["Tables"]["delivery_zones"]["Insert"]
+        >;
+        Relationships: [];
       };
-      promotions: {
+      orders: {
         Row: {
           id: string;
           tenant_id: string;
-          title: string;
-          subtitle: string | null;
-          starts_at: string | null;
-          ends_at: string | null;
-          is_active: boolean;
+          customer_id: string | null;
+          order_number: number | null;
+          source: Database["public"]["Enums"]["order_source"];
+          status: Database["public"]["Enums"]["order_status"];
+          delivery_method: Database["public"]["Enums"]["delivery_method"] | null;
+          delivery_address: string | null;
+          delivery_cost: number;
+          subtotal: number;
+          total: number;
+          payment_method: Database["public"]["Enums"]["payment_method"] | null;
+          payment_status: Database["public"]["Enums"]["payment_status"];
+          staff_id: string | null;
+          created_at: string;
         };
         Insert: {
           id?: string;
           tenant_id: string;
-          title: string;
-          subtitle?: string | null;
-          starts_at?: string | null;
-          ends_at?: string | null;
-          is_active?: boolean;
+          customer_id?: string | null;
+          order_number?: number | null;
+          source?: Database["public"]["Enums"]["order_source"];
+          status?: Database["public"]["Enums"]["order_status"];
+          delivery_method?:
+            | Database["public"]["Enums"]["delivery_method"]
+            | null;
+          delivery_address?: string | null;
+          delivery_cost?: number;
+          subtotal?: number;
+          total?: number;
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null;
+          payment_status?: Database["public"]["Enums"]["payment_status"];
+          staff_id?: string | null;
+          created_at?: string;
         };
-        Update: {
+        Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;
+        Relationships: [];
+      };
+      order_items: {
+        Row: {
+          id: string;
+          order_id: string;
+          tenant_id: string;
+          variant_id: string | null;
+          title_snapshot: string;
+          price_snapshot: number;
+          qty: number;
+        };
+        Insert: {
           id?: string;
-          tenant_id?: string;
-          title?: string;
-          subtitle?: string | null;
-          starts_at?: string | null;
-          ends_at?: string | null;
-          is_active?: boolean;
+          order_id: string;
+          tenant_id: string;
+          variant_id?: string | null;
+          title_snapshot: string;
+          price_snapshot: number;
+          qty: number;
         };
-        Relationships: [
-          {
-            foreignKeyName: "promotions_tenant_id_fkey";
-            columns: ["tenant_id"];
-            isOneToOne: false;
-            referencedRelation: "tenants";
-            referencedColumns: ["id"];
-          },
-        ];
+        Update: Partial<Database["public"]["Tables"]["order_items"]["Insert"]>;
+        Relationships: [];
+      };
+      stock_movements: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          variant_id: string;
+          delta: number;
+          reason: Database["public"]["Enums"]["stock_reason"];
+          order_id: string | null;
+          staff_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          variant_id: string;
+          delta: number;
+          reason: Database["public"]["Enums"]["stock_reason"];
+          order_id?: string | null;
+          staff_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["stock_movements"]["Insert"]
+        >;
+        Relationships: [];
       };
     };
-    Views: {
-      [_ in never]: never;
-    };
+    Views: Record<string, never>;
     Functions: {
-      user_tenant_ids: {
-        Args: Record<PropertyKey, never>;
-        Returns: string[];
-      };
+      user_tenant_ids: { Args: Record<string, never>; Returns: string[] };
+      is_superadmin: { Args: Record<string, never>; Returns: boolean };
     };
     Enums: {
       tenant_status: "active" | "paused" | "trial";
-      tenant_plan: "basic" | "loyalty" | "full";
-      user_role: "owner" | "admin" | "staff";
+      tenant_plan: "basic" | "standard" | "pro";
+      staff_role: "owner" | "admin" | "staff";
+      profile_role: "customer" | "owner" | "superadmin";
       order_source: "online" | "offline";
       order_status:
         | "new"
@@ -639,25 +396,21 @@ export type Database = {
         | "delivering"
         | "done"
         | "cancelled";
-      delivery_method: "pickup" | "courier" | "yandex";
-      payment_method: "cash" | "card" | "kaspi" | "transfer";
+      delivery_method: "pickup" | "courier";
+      payment_method: "cash" | "card" | "kaspi" | "transfer" | "online";
       payment_status: "pending" | "paid" | "refunded";
       stock_reason: "sale" | "return" | "restock" | "correction" | "writeoff";
+      subscription_status: "active" | "canceled";
+      change_request_status: "new" | "in_progress" | "done";
+      message_from_role: "owner" | "superadmin";
     };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
+    CompositeTypes: Record<string, never>;
   };
 };
 
 export type Tables<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
-
 export type TablesInsert<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Insert"];
-
-export type TablesUpdate<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Update"];
-
 export type Enums<T extends keyof Database["public"]["Enums"]> =
   Database["public"]["Enums"][T];
